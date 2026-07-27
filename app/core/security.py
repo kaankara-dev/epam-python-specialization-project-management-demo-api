@@ -20,17 +20,23 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     return password_hash.verify(plain_password, hashed_password)
 
 
-def create_access_token(subject: str) -> str:
+def create_access_token(subject: str, expires_delta: timedelta | None = None) -> str:
+    if not isinstance(subject, str) or not subject.strip():
+        raise ValueError("subject must be a non-empty string")
     now = datetime.now(timezone.utc)
 
     settings = get_settings()
 
+    expiration = (
+        expires_delta
+        if expires_delta is not None
+        else timedelta(minutes=settings.access_token_expire_minutes)
+    )
+
     payload = {
         "sub": subject,
         "iat": now,
-        "exp": now + timedelta(
-            minutes=settings.access_token_expire_minutes
-        ),
+        "exp": now + expiration,
     }
     token = jwt.encode(
         payload,
