@@ -1,5 +1,4 @@
 from datetime import  datetime, timezone
-from operator import index
 
 from peewee import CharField, TextField, DateTimeField, ForeignKeyField, CompositeKey
 
