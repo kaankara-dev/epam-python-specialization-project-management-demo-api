@@ -20,7 +20,6 @@ def test_project_create_name_too_short():
 
 def test_project_member_add_default_role():
     """Rol belirtilmediğinde varsayılan rolün PARTICIPANT olduğunu doğrula."""
-    # Sadece user_id veriyoruz, role vermiyoruz:
     member_data = ProjectMemberAdd(user_id=1)
 
     assert member_data.user_id == 1
@@ -32,3 +31,5 @@ def test_project_member_add_custom_role():
     member_data = ProjectMemberAdd(user_id=1, role=ProjectRole.OWNER)
 
     assert member_data.role == ProjectRole.OWNER
+
+
