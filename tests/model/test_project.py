@@ -42,3 +42,49 @@ def test_project_member_unique_constraint(test_database):
     # İkinci eklemede Unique constraint patlamalı (IntegrityError)
     with pytest.raises(IntegrityError):
         ProjectMember.create(project=project, user=user, role=ProjectRole.PARTICIPANT)
+
+
+def test_project_and_member_creation(test_database):
+    """Proje ve üye kaydı veritabanına başarıyla yazılabilmeli."""
+    owner = User.create(login="owner_usr", password_hash="hash1")
+    project = Project.create(
+        name="Backend Core",
+        description="Core API",
+        created_by=owner
+    )
+
+    assert project.id is not None
+    assert project.created_by.login == "owner_usr"
+
+    member_user = User.create(login="member_usr", password_hash="hash2")
+    membership = ProjectMember.create(
+        project=project,
+        user=member_user,
+        role=ProjectRole.PARTICIPANT
+    )
+
+    assert membership.id is not None
+    assert membership.role == ProjectRole.PARTICIPANT
+
+
+def test_project_member_unique_together(test_database):
+    """Aynı kullanıcı aynı projeye iki defa eklenemez."""
+    user = User.create(login="usr_dup", password_hash="hash1")
+    project = Project.create(name="Proje", created_by=user)
+
+    ProjectMember.create(project=project, user=user, role=ProjectRole.PARTICIPANT)
+
+    with pytest.raises(IntegrityError):
+        ProjectMember.create(project=project, user=user, role=ProjectRole.PARTICIPANT)
+
+
+def test_project_cascade_delete_with_user(test_database):
+    """Projeyi oluşturan kullanıcı silindiğinde proje de CASCADE ile silinmeli."""
+    user = User.create(login="temp_owner", password_hash="hash1")
+    project = Project.create(name="Silinecek Proje", created_by=user)
+    proj_id = project.id
+
+    user.delete_instance()
+
+    # Proje artık DB'de bulunamamalı
+    assert Project.get_or_none(Project.id == proj_id) is None

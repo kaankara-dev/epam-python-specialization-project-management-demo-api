@@ -17,7 +17,8 @@ class ProjectCreate(ProjectBase):
 
 class ProjectUpdate(BaseModel):
     """Proje güncellerken alanlar opsiyonel olmalı (Partial update)."""
-    pass
+    name: str | None = Field(default=None, min_length=3, max_length=150)
+    description: str | None = Field(default=None, max_length=1000)
 
 
 class ProjectMemberAdd(BaseModel):
