@@ -3,6 +3,7 @@ name = "epam-python-specialization-project-management-demo-api"
 version = "0.1.0"
 requires-python = ">=3.12"
 dependencies = [
+    "boto3>=1.43.74",
     "fastapi[standard]>=0.140.3",
     "peewee>=4.2.6",
     "psycopg[binary]>=3.3.4",
@@ -15,5 +16,6 @@ dev = [
     "httpx2>=2.9.1",
     "pytest>=9.1.1",
     "pwdlib",
-    "pwdlib[argon2]"
+    "pwdlib[argon2]",
+    "moto>=5.2.2",
 ]
