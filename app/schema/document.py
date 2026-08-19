@@ -25,10 +25,10 @@ class DocumentResponse(BaseModel):
     project_id: int
     uploaded_by_id: int | None
     file_name: str
-    s3_key: str
     file_size_bytes: int
     mime_type: str
     download_url: str | None = None
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
