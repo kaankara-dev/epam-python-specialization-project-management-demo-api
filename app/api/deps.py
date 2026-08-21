@@ -4,6 +4,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from app.core.security import decode_access_token
 from app.model.user import User
+from app.service.auth import AuthService
 from app.service.project import ProjectService
 from app.service.document import DocumentService
 
@@ -39,3 +40,7 @@ def get_project_service() -> ProjectService:
 
 def get_document_service() -> DocumentService:
     return DocumentService()
+
+
+def get_auth_service() -> AuthService:
+    return AuthService()
