@@ -5,6 +5,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from app.core.security import decode_access_token
 from app.model.user import User
 from app.service.auth import AuthService
+from app.service.invitation import InvitationService
 from app.service.project import ProjectService
 from app.service.document import DocumentService
 
@@ -44,3 +45,7 @@ def get_document_service() -> DocumentService:
 
 def get_auth_service() -> AuthService:
     return AuthService()
+
+
+def get_invitation_service() -> InvitationService:
+    return InvitationService()
