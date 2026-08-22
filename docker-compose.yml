@@ -1,0 +1,11 @@
+services:
+  minio:
+    image: minio/minio:latest
+    container_name: epam_minio
+    ports:
+      - "9000:9000" # S3 API Portu (boto3 buraya bağlanır)
+      - "9001:9001" # MinIO Web Konsolu (Tarayıcıdan bakmak için)
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+    command: server /data --console-address ":9001"
