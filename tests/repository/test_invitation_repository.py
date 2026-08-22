@@ -81,5 +81,5 @@ def test_update_status(test_database, invitation_repo, sample_project):
     expires = datetime.now(timezone.utc) + timedelta(hours=24)
     inv = invitation_repo.create(sample_project.id, "user1", "token-status", expires)
 
-    updated = invitation_repo.update_status(inv, InvitationStatus.ACCEPTED.value)
+    updated = invitation_repo.update_status(inv, InvitationStatus.ACCEPTED)
     assert updated.status == InvitationStatus.ACCEPTED.value
