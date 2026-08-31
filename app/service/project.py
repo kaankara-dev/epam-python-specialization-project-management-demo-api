@@ -57,3 +57,9 @@ class ProjectService:
             role=member_data.role,
         )
 
+    def list_projects(self, current_user_id: int) -> list[ProjectResponse]:
+        """Kullanıcının üye olduğu projeleri ProjectResponse listesi olarak döner."""
+        projects = self.project_repo.list_by_user(current_user_id)
+        return [ProjectResponse.model_validate(project) for project in projects]
+
+

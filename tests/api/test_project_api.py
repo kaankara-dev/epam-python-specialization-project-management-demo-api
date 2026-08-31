@@ -107,3 +107,32 @@ def test_add_member_not_found(client, mock_user, mock_project_service):
 def cleanup_overrides():
     yield
     app.dependency_overrides.clear()
+
+
+def test_list_projects_unauthorized(client):
+    """Token olmadan 401 dönmeli."""
+    app.dependency_overrides.clear()
+    res = client.get("/api/v1/projects/")
+    assert res.status_code == 401
+
+
+def test_list_projects_success(client, mock_user, mock_project_service):
+    """Kullanıcının projeleri 200 OK ile dönmeli."""
+    mock_project_service.list_projects.return_value = [
+        ProjectResponse(
+            id=1, name="Proje A", description=None,
+            created_by_id=mock_user.id,
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc),
+        )
+    ]
+
+    app.dependency_overrides[get_current_user] = lambda: mock_user
+    app.dependency_overrides[get_project_service] = lambda: mock_project_service
+
+    res = client.get("/api/v1/projects/")
+
+    assert res.status_code == 200
+    data = res.json()
+    assert len(data) == 1
+    assert data[0]["name"] == "Proje A"

@@ -55,3 +55,26 @@ def test_delete_project(test_database, sample_user):
     assert deleted is True
 
     assert repo.get_by_id(project.id) is None
+
+
+def test_list_by_user_returns_only_memberships(test_database, sample_user):
+    """Kullanıcı sadece üyesi olduğu projeleri görmeli."""
+    repo = ProjectRepository()
+
+    my_project = repo.create(name="Benim Projem", created_by_id=sample_user.id)
+    repo.add_member(project_id=my_project.id, user_id=sample_user.id, role=ProjectRole.OWNER)
+
+    other_user = User.create(login="baska_user", password_hash="hash")
+    other_project = repo.create(name="Başkasının Projesi", created_by_id=other_user.id)
+    repo.add_member(project_id=other_project.id, user_id=other_user.id, role=ProjectRole.OWNER)
+
+    result = repo.list_by_user(user_id=sample_user.id)
+
+    assert len(result) == 1
+    assert result[0].id == my_project.id
+
+
+def test_list_by_user_empty_when_no_membership(test_database, sample_user):
+    """Hiç üyeliği olmayan kullanıcı için boş liste dönmeli."""
+    repo = ProjectRepository()
+    assert repo.list_by_user(user_id=sample_user.id) == []

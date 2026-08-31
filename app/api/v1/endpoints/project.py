@@ -50,3 +50,12 @@ async def add_project_member(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=str(exc),
         ) from exc
+
+
+@router.get("/", response_model=list[ProjectResponse], status_code=status.HTTP_200_OK)
+async def list_projects(
+    current_user: Annotated[User, Depends(get_current_user)],
+    project_service: Annotated[ProjectService, Depends(get_project_service)],
+) -> list[ProjectResponse]:
+    """Kullanıcının üyesi olduğu projeleri listeler."""
+    return project_service.list_projects(current_user_id=current_user.id)

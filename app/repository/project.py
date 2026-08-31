@@ -39,3 +39,8 @@ class ProjectRepository:
             return False
         project.delete_instance()
         return True
+
+
+    def list_by_user(self, user_id: int) -> list[Project]:
+        """Kullanıcının üyesi olduğu tüm projeleri döner."""
+        return list(Project.select().join(ProjectMember).where(ProjectMember.user==user_id))
