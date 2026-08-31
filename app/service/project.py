@@ -1,6 +1,6 @@
 from app.model.enums import ProjectRole
 from app.repository.project import ProjectRepository
-from app.schema.project import ProjectCreate, ProjectResponse, ProjectMemberAdd
+from app.schema.project import ProjectCreate, ProjectResponse, ProjectMemberAdd, ProjectUpdate
 from app.exception.project import (
     ProjectNotFoundError,
     ProjectPermissionDeniedError,
@@ -75,4 +75,17 @@ class ProjectService:
         if member is None:
             raise ProjectPermissionDeniedError(f"User {current_user_id} is not a member of this project")
         return ProjectResponse.model_validate(project)
+
+
+    def update_project(self, project_id: int, data: ProjectUpdate, current_user_id: int) -> ProjectResponse:
+        """Proje bilgilerini günceller; sadece OWNER yetkilidir."""
+        project = self.project_repo.get_by_id(project_id)
+        if project is None:
+            raise ProjectNotFoundError(f"Project with id {project_id} not found")
+        member = self.project_repo.get_member(project_id=project_id, user_id=current_user_id)
+        if member is None or member.role != ProjectRole.OWNER:
+            raise ProjectPermissionDeniedError(f"User {current_user_id} is not authorized for this action")
+        update_dict = data.model_dump(exclude_unset=True)
+        updated_project = self.project_repo.update(project_id, update_dict)
+        return ProjectResponse.model_validate(updated_project)
 

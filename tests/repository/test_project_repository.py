@@ -78,3 +78,32 @@ def test_list_by_user_empty_when_no_membership(test_database, sample_user):
     """Hiç üyeliği olmayan kullanıcı için boş liste dönmeli."""
     repo = ProjectRepository()
     assert repo.list_by_user(user_id=sample_user.id) == []
+
+
+def test_update_project_success(test_database, sample_user):
+    """Proje adı ve açıklaması güncellenebilmeli."""
+    repo = ProjectRepository()
+    project = repo.create(name="Eski İsim", description="Eski Açıklama", created_by_id=sample_user.id)
+
+    updated = repo.update(project_id=project.id, data={"name": "Yeni İsim", "description": "Yeni Açıklama"})
+
+    assert updated.name == "Yeni İsim"
+    assert updated.description == "Yeni Açıklama"
+
+
+def test_update_project_partial_fields(test_database, sample_user):
+    """Sadece verilen alan güncellenmeli, diğeri değişmemeli."""
+    repo = ProjectRepository()
+    project = repo.create(name="Sabit İsim", description="Sabit Açıklama", created_by_id=sample_user.id)
+
+    updated = repo.update(project_id=project.id, data={"description": "Sadece Açıklama Değişti"})
+
+    assert updated.name == "Sabit İsim"
+    assert updated.description == "Sadece Açıklama Değişti"
+
+
+def test_update_nonexistent_project_returns_none(test_database):
+    """Olmayan proje güncellenmeye çalışılırsa None dönmeli."""
+    repo = ProjectRepository()
+    result = repo.update(project_id=9999, data={"name": "Fark Etmez"})
+    assert result is None

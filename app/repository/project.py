@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from app.model.project import Project, ProjectMember
 from app.model.enums import ProjectRole
 
@@ -44,3 +46,15 @@ class ProjectRepository:
     def list_by_user(self, user_id: int) -> list[Project]:
         """Kullanıcının üyesi olduğu tüm projeleri döner."""
         return list(Project.select().join(ProjectMember).where(ProjectMember.user==user_id))
+
+
+    def update(self, project_id: int, data: dict) -> Project | None:
+        """Verilen alanları günceller; proje yoksa None döner."""
+        project = self.get_by_id(project_id)
+        if project is None:
+            return None
+        for key in data:
+            project.__setattr__(key, data[key])
+        project.updated_at = datetime.now()
+        project.save()
+        return project

@@ -1,7 +1,7 @@
 import pytest
 from app.model.user import User
 from app.model.enums import ProjectRole
-from app.schema.project import ProjectCreate, ProjectMemberAdd, ProjectResponse
+from app.schema.project import ProjectCreate, ProjectMemberAdd, ProjectResponse, ProjectUpdate
 from app.repository.project import ProjectRepository
 from app.service.project import ProjectService
 from app.exception.project import ProjectPermissionDeniedError, ProjectNotFoundError
@@ -128,3 +128,58 @@ def test_get_project_forbidden_for_non_member(test_database, project_service, ow
 
     with pytest.raises(ProjectPermissionDeniedError):
         project_service.get_project(project_id=project_dto.id, current_user_id=outsider_user.id)
+
+
+def test_update_project_success_by_owner(test_database, project_service, owner_user):
+    """OWNER proje bilgilerini başarıyla güncelleyebilmeli."""
+    project_dto = project_service.create_project(
+        data=ProjectCreate(name="Eski Ad"), current_user_id=owner_user.id
+    )
+
+    result = project_service.update_project(
+        project_id=project_dto.id,
+        data=ProjectUpdate(name="Yeni Ad"),
+        current_user_id=owner_user.id,
+    )
+
+    assert result.name == "Yeni Ad"
+
+
+def test_update_project_not_found_raises_error(test_database, project_service, owner_user):
+    """Var olmayan proje güncellenmeye çalışılırsa ProjectNotFoundError fırlatmalı."""
+    with pytest.raises(ProjectNotFoundError):
+        project_service.update_project(
+            project_id=9999,
+            data=ProjectUpdate(name="Fark Etmez"),
+            current_user_id=owner_user.id,
+        )
+
+
+def test_update_project_forbidden_for_non_owner_member(test_database, project_service, owner_user, member_user):
+    """PARTICIPANT rolündeki üye proje güncelleyemez."""
+    project_dto = project_service.create_project(
+        data=ProjectCreate(name="Takım Projesi"), current_user_id=owner_user.id
+    )
+    member_data = ProjectMemberAdd(user_id=member_user.id, role=ProjectRole.PARTICIPANT)
+    project_service.add_member(project_id=project_dto.id, member_data=member_data, current_user_id=owner_user.id)
+
+    with pytest.raises(ProjectPermissionDeniedError):
+        project_service.update_project(
+            project_id=project_dto.id,
+            data=ProjectUpdate(name="İzinsiz Değişiklik"),
+            current_user_id=member_user.id,
+        )
+
+
+def test_update_project_forbidden_for_non_member(test_database, project_service, owner_user, outsider_user):
+    """Projeye üye olmayan kullanıcı güncelleyemez."""
+    project_dto = project_service.create_project(
+        data=ProjectCreate(name="Gizli Proje"), current_user_id=owner_user.id
+    )
+
+    with pytest.raises(ProjectPermissionDeniedError):
+        project_service.update_project(
+            project_id=project_dto.id,
+            data=ProjectUpdate(name="İzinsiz"),
+            current_user_id=outsider_user.id,
+        )

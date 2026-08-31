@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.api.deps import get_current_user, get_project_service
 from app.model.user import User
-from app.schema.project import ProjectCreate, ProjectResponse, ProjectMemberAdd
+from app.schema.project import ProjectCreate, ProjectResponse, ProjectMemberAdd, ProjectUpdate
 from app.service.project import ProjectService
 from app.exception.project import (
     ProjectNotFoundError,
@@ -81,3 +81,20 @@ async def get_project(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=str(exc),
         ) from exc
+
+
+@router.patch("/{project_id}", response_model=ProjectResponse, status_code=status.HTTP_200_OK)
+async def update_project(
+        project_id: int,
+        update_data: ProjectUpdate,
+        current_user: Annotated[User, Depends(get_current_user)],
+        project_service: Annotated[ProjectService, Depends(get_project_service)],
+) -> ProjectResponse:
+    """Proje bilgilerini günceller (sadece OWNER)."""
+    try:
+        project = project_service.update_project(project_id=project_id, current_user_id=current_user.id)
+        return project
+    except ProjectNotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+    except ProjectPermissionDeniedError as exc:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)) from exc

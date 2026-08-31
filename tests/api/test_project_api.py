@@ -184,3 +184,46 @@ def test_get_project_forbidden(client, mock_user, mock_project_service):
     res = client.get("/api/v1/projects/5")
 
     assert res.status_code == 403
+
+
+def test_update_project_unauthorized(client):
+    app.dependency_overrides.clear()
+    res = client.patch("/api/v1/projects/1", json={"name": "Fark Etmez"})
+    assert res.status_code == 401
+
+
+def test_update_project_success(client, mock_user, mock_project_service):
+    mock_project_service.update_project.return_value = ProjectResponse(
+        id=5, name="Güncel Ad", description=None,
+        created_by_id=mock_user.id,
+        created_at=datetime.now(timezone.utc),
+        updated_at=datetime.now(timezone.utc),
+    )
+
+    app.dependency_overrides[get_current_user] = lambda: mock_user
+    app.dependency_overrides[get_project_service] = lambda: mock_project_service
+
+    res = client.patch("/api/v1/projects/5", json={"name": "Güncel Ad"})
+
+    assert res.status_code == 200
+    assert res.json()["name"] == "Güncel Ad"
+
+
+def test_update_project_not_found(client, mock_user, mock_project_service):
+    mock_project_service.update_project.side_effect = ProjectNotFoundError("Proje bulunamadı")
+    app.dependency_overrides[get_current_user] = lambda: mock_user
+    app.dependency_overrides[get_project_service] = lambda: mock_project_service
+
+    res = client.patch("/api/v1/projects/9999", json={"name": "Fark Etmez"})
+
+    assert res.status_code == 404
+
+
+def test_update_project_forbidden(client, mock_user, mock_project_service):
+    mock_project_service.update_project.side_effect = ProjectPermissionDeniedError("Yetkisiz işlem")
+    app.dependency_overrides[get_current_user] = lambda: mock_user
+    app.dependency_overrides[get_project_service] = lambda: mock_project_service
+
+    res = client.patch("/api/v1/projects/5", json={"name": "İzinsiz"})
+
+    assert res.status_code == 403
