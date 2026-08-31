@@ -1,3 +1,4 @@
+from http.client import HTTPResponse
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 
@@ -59,3 +60,24 @@ async def list_projects(
 ) -> list[ProjectResponse]:
     """Kullanıcının üyesi olduğu projeleri listeler."""
     return project_service.list_projects(current_user_id=current_user.id)
+
+
+@router.get("/{project_id}", response_model=ProjectResponse, status_code=status.HTTP_200_OK)
+async def get_project(
+    project_id: int,
+    current_user: Annotated[User, Depends(get_current_user)],
+    project_service: Annotated[ProjectService, Depends(get_project_service)],
+) -> ProjectResponse:
+    """Proje detayını döner (sadece üyeler)."""
+    try:
+        return project_service.get_project(project_id=project_id, current_user_id=current_user.id)
+    except ProjectNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(exc),
+        ) from exc
+    except ProjectPermissionDeniedError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=str(exc),
+        ) from exc

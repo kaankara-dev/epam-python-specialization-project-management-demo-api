@@ -136,3 +136,51 @@ def test_list_projects_success(client, mock_user, mock_project_service):
     data = res.json()
     assert len(data) == 1
     assert data[0]["name"] == "Proje A"
+
+
+def test_get_project_unauthorized(client):
+    """Token olmadan 401 dönmeli."""
+    app.dependency_overrides.clear()
+    res = client.get("/api/v1/projects/1")
+    assert res.status_code == 401
+
+
+def test_get_project_success(client, mock_user, mock_project_service):
+    """Üye kullanıcı proje detayına 200 OK ile ulaşmalı."""
+    mock_project_service.get_project.return_value = ProjectResponse(
+        id=5, name="Detay Projesi", description=None,
+        created_by_id=mock_user.id,
+        created_at=datetime.now(timezone.utc),
+        updated_at=datetime.now(timezone.utc),
+    )
+
+    app.dependency_overrides[get_current_user] = lambda: mock_user
+    app.dependency_overrides[get_project_service] = lambda: mock_project_service
+
+    res = client.get("/api/v1/projects/5")
+
+    assert res.status_code == 200
+    assert res.json()["id"] == 5
+
+
+def test_get_project_not_found(client, mock_user, mock_project_service):
+    """Proje bulunamazsa 404 dönmeli."""
+    mock_project_service.get_project.side_effect = ProjectNotFoundError("Proje bulunamadı")
+    app.dependency_overrides[get_current_user] = lambda: mock_user
+    app.dependency_overrides[get_project_service] = lambda: mock_project_service
+
+    res = client.get("/api/v1/projects/9999")
+
+    assert res.status_code == 404
+    assert "Proje bulunamadı" in res.json()["detail"]
+
+
+def test_get_project_forbidden(client, mock_user, mock_project_service):
+    """Üyesi olmayan kullanıcı için 403 dönmeli."""
+    mock_project_service.get_project.side_effect = ProjectPermissionDeniedError("Yetkisiz erişim")
+    app.dependency_overrides[get_current_user] = lambda: mock_user
+    app.dependency_overrides[get_project_service] = lambda: mock_project_service
+
+    res = client.get("/api/v1/projects/5")
+
+    assert res.status_code == 403

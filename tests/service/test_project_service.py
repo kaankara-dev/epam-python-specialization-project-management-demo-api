@@ -100,3 +100,31 @@ def test_list_projects_returns_only_user_memberships(test_database, project_serv
     assert len(result) == 1
     assert result[0].id == proj1.id
     assert all(isinstance(p, ProjectResponse) for p in result)
+
+
+def test_get_project_success_for_member(test_database, project_service, owner_user):
+    """Üye olan kullanıcı proje detayını görebilmeli."""
+    project_dto = project_service.create_project(
+        data=ProjectCreate(name="Detay Projesi"), current_user_id=owner_user.id
+    )
+
+    result = project_service.get_project(project_id=project_dto.id, current_user_id=owner_user.id)
+
+    assert result.id == project_dto.id
+    assert result.name == "Detay Projesi"
+
+
+def test_get_project_not_found_raises_error(test_database, project_service, owner_user):
+    """Var olmayan proje istenirse ProjectNotFoundError fırlatmalı."""
+    with pytest.raises(ProjectNotFoundError):
+        project_service.get_project(project_id=9999, current_user_id=owner_user.id)
+
+
+def test_get_project_forbidden_for_non_member(test_database, project_service, owner_user, outsider_user):
+    """Üyesi olmayan kullanıcı proje detayını görmeye çalışırsa ProjectPermissionDeniedError fırlatmalı."""
+    project_dto = project_service.create_project(
+        data=ProjectCreate(name="Gizli Detay"), current_user_id=owner_user.id
+    )
+
+    with pytest.raises(ProjectPermissionDeniedError):
+        project_service.get_project(project_id=project_dto.id, current_user_id=outsider_user.id)

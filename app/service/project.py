@@ -11,6 +11,7 @@ class ProjectService:
     def __init__(self, project_repo: ProjectRepository | None = None) -> None:
         self.project_repo = project_repo or ProjectRepository()
 
+
     def create_project(self, data: ProjectCreate, current_user_id: int) -> ProjectResponse:
         """Yeni proje oluşturur ve oluşturan kullanıcıyı otomatik OWNER yapar."""
         # 1. Projeyi oluştur (repo.create)
@@ -29,6 +30,7 @@ class ProjectService:
 
         # 3. Pydantic ProjectResponse DTO'suna çevirip dön
         return ProjectResponse.model_validate(project)
+
 
     def add_member(
         self,
@@ -57,9 +59,20 @@ class ProjectService:
             role=member_data.role,
         )
 
+
     def list_projects(self, current_user_id: int) -> list[ProjectResponse]:
         """Kullanıcının üye olduğu projeleri ProjectResponse listesi olarak döner."""
         projects = self.project_repo.list_by_user(current_user_id)
         return [ProjectResponse.model_validate(project) for project in projects]
 
+
+    def get_project(self, project_id: int, current_user_id: int) -> ProjectResponse:
+        """Proje detayını döner; sadece üyeler erişebilir."""
+        project = self.project_repo.get_by_id(project_id)
+        if project is None:
+            raise ProjectNotFoundError(f"Project with id {project_id} not found")
+        member = self.project_repo.get_member(project_id=project_id, user_id=current_user_id)
+        if member is None:
+            raise ProjectPermissionDeniedError(f"User {current_user_id} is not a member of this project")
+        return ProjectResponse.model_validate(project)
 
