@@ -92,7 +92,7 @@ async def update_project(
 ) -> ProjectResponse:
     """Proje bilgilerini günceller (sadece OWNER)."""
     try:
-        project = project_service.update_project(project_id=project_id, current_user_id=current_user.id)
+        project = project_service.update_project(project_id=project_id, data=update_data, current_user_id=current_user.id)
         return project
     except ProjectNotFoundError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
