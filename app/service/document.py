@@ -1,6 +1,6 @@
+from typing import List
 from uuid import uuid4
 from app.core.s3 import S3Client
-from app.model.project import Project
 from app.repository.project import ProjectRepository
 from app.repository.document import DocumentRepository
 from app.schema.document import DocumentCreateRequest, DocumentUploadResponse, DocumentResponse
@@ -84,3 +84,16 @@ class DocumentService:
                                 mime_type=document.mime_type,
                                 download_url=signed_download_url,
                                 created_at=document.created_at)
+
+
+    def get_documents_of_project(self, project_id: int, current_user_id: int) -> List[DocumentResponse]:
+        """Proje üyelerinin isteğine döküman listesi döner"""
+        project = self.project_repo.get_by_id(project_id)
+        if not project:
+            raise ProjectNotFoundError(f"Project {project_id} not found")
+        member = self.project_repo.get_member(project_id=project_id, user_id=current_user_id)
+        if not member:
+            raise ProjectPermissionDeniedError(f"User {current_user_id} is not a member of project {project_id}")
+        documents = self.document_repo.list_by_project(project_id=project_id)
+        return [DocumentResponse.model_validate(document) for document in documents]
+

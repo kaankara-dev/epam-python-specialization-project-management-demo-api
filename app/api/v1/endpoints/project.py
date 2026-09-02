@@ -2,9 +2,11 @@ from http.client import HTTPResponse
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.api.deps import get_current_user, get_project_service
+from app.api.deps import get_current_user, get_project_service, get_document_service
 from app.model.user import User
+from app.schema.document import DocumentResponse
 from app.schema.project import ProjectCreate, ProjectResponse, ProjectMemberAdd, ProjectUpdate
+from app.service.document import DocumentService
 from app.service.project import ProjectService
 from app.exception.project import (
     ProjectNotFoundError,
@@ -110,3 +112,17 @@ async def delete_project(project_id: int,
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
     except ProjectPermissionDeniedError as exc:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)) from exc
+
+
+@router.get("/{project_id}/documents", response_model=list[DocumentResponse], status_code=status.HTTP_200_OK)
+async def get_documents(
+        project_id: int,
+        current_user: Annotated[User, Depends(get_current_user)],
+        document_service: Annotated[DocumentService, Depends(get_document_service)],)-> list[DocumentResponse]:
+    try:
+        return document_service.get_documents_of_project(project_id=project_id, current_user_id=current_user.id)
+    except ProjectNotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+    except ProjectPermissionDeniedError as exc:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)) from exc
+

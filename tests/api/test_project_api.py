@@ -4,11 +4,13 @@ from unittest.mock import MagicMock
 import pytest
 from fastapi.testclient import TestClient
 
-from app.api.deps import get_current_user, get_project_service
+from app.api.deps import get_current_user, get_project_service, get_document_service
 from app.exception.project import ProjectNotFoundError, ProjectPermissionDeniedError
 from app.main import app
 from app.model.enums import ProjectRole
+from app.schema.document import DocumentResponse
 from app.schema.project import ProjectResponse
+from tests.api.test_document_api import mock_document_service
 
 
 @pytest.fixture
@@ -19,6 +21,12 @@ def client():
 @pytest.fixture
 def mock_project_service():
     """Veritabanına gitmeyen sahte ProjectService."""
+    return MagicMock()
+
+
+@pytest.fixture
+def mock_document_service():
+    """Veritabanına gitmeyen sahte DocumentService."""
     return MagicMock()
 
 
@@ -263,5 +271,56 @@ def test_delete_project_forbidden(client, mock_user, mock_project_service):
     app.dependency_overrides[get_project_service] = lambda: mock_project_service
 
     res = client.delete("/api/v1/projects/5")
+
+    assert res.status_code == 403
+
+
+def test_get_documents_project_unauthorized(client):
+    app.dependency_overrides.clear()
+    res = client.get("/api/v1/projects/1/documents")
+    assert res.status_code == 401
+
+
+def test_get_documents_project_success(client, mock_user, mock_project_service, mock_document_service):
+    mock_project_service.return_value = ProjectResponse(name="Project A", description="Project Description", id=1, created_by_id=mock_user.id, created_at=datetime.now(timezone.utc), updated_at=datetime.now(timezone.utc))
+    project = mock_project_service.get_project(1)
+    mock_document_service.return_value = [
+        DocumentResponse(
+            id=1,
+            uploaded_by_id=mock_user.id,
+            file_name="document.pdf",
+            file_size_bytes=1024,
+            mime_type="application/pdf",
+            download_url=None,
+            project_id=project.id,
+            created_at=datetime.now(timezone.utc),
+        )
+    ]
+
+    app.dependency_overrides[get_current_user] = lambda: mock_user
+    app.dependency_overrides[get_project_service] = lambda: mock_project_service
+    app.dependency_overrides[get_document_service] = lambda: mock_document_service
+
+    res = client.get("/api/v1/projects/5/documents")
+
+    assert res.status_code == 200
+
+
+def test_get_documents_project_not_found(client, mock_user, mock_document_service):
+    mock_document_service.get_documents_of_project.side_effect = ProjectNotFoundError("Proje bulunamadı")
+    app.dependency_overrides[get_current_user] = lambda: mock_user
+    app.dependency_overrides[get_project_service] = lambda: mock_document_service
+
+    res = client.get("/api/v1/projects/9999/documents")
+
+    assert res.status_code == 404
+
+
+def test_get_documents_project_forbidden(client, mock_user, mock_document_service):
+    mock_document_service.get_documents_of_project.side_effect = ProjectPermissionDeniedError("Yetkisiz işlem")
+    app.dependency_overrides[get_current_user] = lambda: mock_user
+    app.dependency_overrides[get_document_service] = lambda: mock_document_service
+
+    res = client.get("/api/v1/projects/5/documents")
 
     assert res.status_code == 403
