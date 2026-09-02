@@ -98,3 +98,15 @@ async def update_project(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
     except ProjectPermissionDeniedError as exc:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)) from exc
+
+
+@router.delete("/{project_id}", response_model=bool, status_code=status.HTTP_200_OK)
+async def delete_project(project_id: int,
+                         current_user: Annotated[User, Depends(get_current_user)],
+                         project_service: Annotated[ProjectService, Depends(get_project_service)],)-> bool:
+    try:
+        return project_service.delete_project(project_id=project_id, current_user_id=current_user.id)
+    except ProjectNotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+    except ProjectPermissionDeniedError as exc:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)) from exc

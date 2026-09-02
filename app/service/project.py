@@ -89,3 +89,13 @@ class ProjectService:
         updated_project = self.project_repo.update(project_id, update_dict)
         return ProjectResponse.model_validate(updated_project)
 
+
+    def delete_project(self, project_id: int, current_user_id: int) -> bool:
+        """Projeyi siler; sadece OWNER yetkilidir"""
+        project = self.project_repo.get_by_id(project_id)
+        if project is None:
+            raise ProjectNotFoundError(f"Project with id {project_id} not found")
+        member = self.project_repo.get_member(project_id=project_id, user_id=current_user_id)
+        if member is None or member.role != ProjectRole.OWNER:
+            raise ProjectPermissionDeniedError(f"User {current_user_id} is not authorized for this action")
+        return self.project_repo.delete(project_id=project_id)

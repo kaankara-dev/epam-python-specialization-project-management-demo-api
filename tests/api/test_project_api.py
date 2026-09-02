@@ -227,3 +227,41 @@ def test_update_project_forbidden(client, mock_user, mock_project_service):
     res = client.patch("/api/v1/projects/5", json={"name": "İzinsiz"})
 
     assert res.status_code == 403
+
+
+def test_delete_project_unauthorized(client):
+    app.dependency_overrides.clear()
+    res = client.delete("/api/v1/projects/1")
+    assert res.status_code == 401
+
+
+def test_delete_project_success(client, mock_user, mock_project_service):
+    mock_project_service.delete_project.return_value = True
+
+    app.dependency_overrides[get_current_user] = lambda: mock_user
+    app.dependency_overrides[get_project_service] = lambda: mock_project_service
+
+    res = client.delete("/api/v1/projects/5")
+
+    assert res.status_code == 200
+    assert res.content == b'true'
+
+
+def test_delete_project_not_found(client, mock_user, mock_project_service):
+    mock_project_service.delete_project.side_effect = ProjectNotFoundError("Proje bulunamadı")
+    app.dependency_overrides[get_current_user] = lambda: mock_user
+    app.dependency_overrides[get_project_service] = lambda: mock_project_service
+
+    res = client.delete("/api/v1/projects/9999")
+
+    assert res.status_code == 404
+
+
+def test_delete_project_forbidden(client, mock_user, mock_project_service):
+    mock_project_service.delete_project.side_effect = ProjectPermissionDeniedError("Yetkisiz işlem")
+    app.dependency_overrides[get_current_user] = lambda: mock_user
+    app.dependency_overrides[get_project_service] = lambda: mock_project_service
+
+    res = client.delete("/api/v1/projects/5")
+
+    assert res.status_code == 403

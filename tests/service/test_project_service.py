@@ -183,3 +183,55 @@ def test_update_project_forbidden_for_non_member(test_database, project_service,
             data=ProjectUpdate(name="İzinsiz"),
             current_user_id=outsider_user.id,
         )
+
+
+def test_delete_project_success_by_owner(test_database, project_service, owner_user):
+    """OWNER projeyi başarıyla silebilmeli."""
+    project_dto = project_service.create_project(
+        data=ProjectCreate(name="Silinecek proje"), current_user_id=owner_user.id
+    )
+
+    result = project_service.delete_project(
+        project_id=project_dto.id,
+        current_user_id=owner_user.id,
+    )
+
+    assert result == True
+    with pytest.raises(ProjectNotFoundError):
+        project_service.get_project(project_id=project_dto.id, current_user_id=owner_user.id)
+
+
+def test_delete_project_not_found_raises_error(test_database, project_service, owner_user):
+    """Var olmayan proje silinmeye çalışılırsa ProjectNotFoundError fırlatmalı."""
+    with pytest.raises(ProjectNotFoundError):
+        project_service.delete_project(
+            project_id=9999, current_user_id=owner_user.id)
+
+
+def test_delete_project_forbidden_for_non_owner_member(test_database, project_service, member_user, owner_user):
+    """PARTICIPANT rolündeki üye projeyi silemez."""
+    project_dto = project_service.create_project(
+        data=ProjectCreate(name="Takım Projesi"), current_user_id=owner_user.id
+    )
+    member_data = ProjectMemberAdd(user_id=member_user.id, role=ProjectRole.PARTICIPANT)
+    project_service.add_member(project_id=project_dto.id, member_data=member_data, current_user_id=owner_user.id)
+
+    with pytest.raises(ProjectPermissionDeniedError):
+        project_service.delete_project(
+            project_id=project_dto.id,
+            current_user_id=member_user.id,
+        )
+
+
+
+def test_delete_project_forbidden_for_non_member(test_database, project_service, owner_user, outsider_user):
+    """Projeye üye olmayan kullanıcı projeyi silemez."""
+    project_dto = project_service.create_project(
+        data=ProjectCreate(name="Gizli Proje"), current_user_id=owner_user.id
+    )
+
+    with pytest.raises(ProjectPermissionDeniedError):
+        project_service.delete_project(
+            project_id=project_dto.id,
+            current_user_id=outsider_user.id,
+        )
