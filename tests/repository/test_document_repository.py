@@ -69,3 +69,49 @@ def test_delete_document(db_setup):
 
     assert repo.delete(doc.id) is True
     assert repo.get_by_id(doc.id) is None
+
+
+def test_get_by_s3_key_found(db_setup):
+    """S3 key ile doküman bulunabilmeli."""
+    user, project = db_setup
+    repo = DocumentRepository()
+
+    created = repo.create(
+        project_id=project.id,
+        uploaded_by_id=user.id,
+        file_name="rapor.pdf",
+        s3_key="projects/1/uuid_rapor.pdf",
+        mime_type="application/pdf",
+    )
+
+    found = repo.get_by_s3_key("projects/1/uuid_rapor.pdf")
+    assert found is not None
+    assert found.id == created.id
+
+
+def test_get_by_s3_key_not_found(db_setup):
+    """Olmayan bir S3 key sorgulandığında None dönmeli."""
+    repo = DocumentRepository()
+    assert repo.get_by_s3_key("projects/999/nonexistent.pdf") is None
+
+
+def test_update_file_size(db_setup):
+    """Doküman boyutu (file_size_bytes) güncellenebilmeli."""
+    user, project = db_setup
+    repo = DocumentRepository()
+
+    doc = repo.create(
+        project_id=project.id,
+        uploaded_by_id=user.id,
+        file_name="buyuk_dosya.pdf",
+        s3_key="projects/1/uuid_buyuk.pdf",
+        mime_type="application/pdf",
+    )
+    assert doc.file_size_bytes == 0
+
+    updated = repo.update_file_size(doc, 5242880)
+
+    assert updated.file_size_bytes == 5242880
+    # DB'den tekrar çekip kalıcı olduğunu doğrulayalım:
+    refetched = repo.get_by_id(doc.id)
+    assert refetched.file_size_bytes == 5242880
