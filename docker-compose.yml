@@ -8,20 +8,54 @@ services:
     environment:
       - MINIO_ROOT_USER=minioadmin
       - MINIO_ROOT_PASSWORD=minioadmin
+      - MINIO_SITE_REGION=eu-central-1
     command: server /data --console-address ":9001"
 
   minio-init:
     image: minio/mc
     depends_on:
       - minio
+      - app
+    environment:
+      - S3_BUCKET_NAME=${S3_BUCKET_NAME}
     entrypoint: >
       /bin/sh -c "
       sleep 3;
       mc alias set myminio http://minio:9000 minioadmin minioadmin;
-      mc mb myminio/project-management-documents --ignore-existing;
-      mc admin config set myminio notify_webhook:docsize endpoint=http://host.docker.internal:8000/api/v1/internal/s3-events;
+      mc mb myminio/$$S3_BUCKET_NAME --ignore-existing;
+      until mc admin config set myminio notify_webhook:docsize endpoint=http://app:8000/api/v1/internal/s3-events; do
+        echo 'app henuz hazir degil, 2sn sonra tekrar denenecek...';
+        sleep 2;
+      done;
       mc admin service restart myminio --json;
       sleep 2;
-      mc event add myminio/project-management-documents arn:minio:sqs::docsize:webhook --event put;
+      mc event add myminio/$$S3_BUCKET_NAME arn:minio:sqs::docsize:webhook --event put;
       exit 0;
       "
+
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - S3_ENDPOINT_URL=http://minio:9000
+      - DATABASE_URL=postgresql://epam_user:epam_pass@db:5432/project_management
+    env_file:
+      - .env
+    depends_on:
+      - minio
+      - db
+
+  db:
+    image: postgres:16
+    environment:
+      - POSTGRES_USER=epam_user
+      - POSTGRES_PASSWORD=epam_pass
+      - POSTGRES_DB=project_management
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"   # host'ta 5432 doluysa çakışmasın diye 5433
+
+volumes:
+  pgdata:
