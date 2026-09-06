@@ -9,3 +9,19 @@ services:
       - MINIO_ROOT_USER=minioadmin
       - MINIO_ROOT_PASSWORD=minioadmin
     command: server /data --console-address ":9001"
+
+  minio-init:
+    image: minio/mc
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      sleep 3;
+      mc alias set myminio http://minio:9000 minioadmin minioadmin;
+      mc mb myminio/project-management-documents --ignore-existing;
+      mc admin config set myminio notify_webhook:docsize endpoint=http://host.docker.internal:8000/api/v1/internal/s3-events;
+      mc admin service restart myminio --json;
+      sleep 2;
+      mc event add myminio/project-management-documents arn:minio:sqs::docsize:webhook --event put;
+      exit 0;
+      "
