@@ -1,13 +1,15 @@
 from typing import Annotated
+
 from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from app.core.security import decode_access_token
+from app.exception.security import InvalidAccessTokenError
 from app.model.user import User
 from app.service.auth import AuthService
+from app.service.document import DocumentService
 from app.service.invitation import InvitationService
 from app.service.project import ProjectService
-from app.service.document import DocumentService
 
 http_bearer = HTTPBearer()
 
@@ -18,7 +20,7 @@ def get_current_user(
     token = credentials.credentials
     try:
         login = decode_access_token(token)
-    except Exception:
+    except InvalidAccessTokenError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",

@@ -1,4 +1,4 @@
-from peewee import Model, AutoField
+from peewee import AutoField, Model
 
 from app.db.database import database_proxy
 

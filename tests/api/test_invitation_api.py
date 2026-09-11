@@ -1,13 +1,15 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from unittest.mock import MagicMock
+
 import pytest
 from fastapi.testclient import TestClient
 
 from app.api.deps import get_current_user, get_invitation_service
 from app.exception.invitation import (
     InvitationExpiredError,
+    InvitationInvalidStatusError,
     InvitationNotFoundError,
-    UserNotFoundError, InvitationInvalidStatusError,
+    UserNotFoundError,
 )
 from app.exception.project import ProjectPermissionDeniedError, UserAlreadyMemberError
 from app.main import app
@@ -60,8 +62,8 @@ def test_invite_user_success(client, mock_user, mock_invitation_service):
         invited_login="dev1",
         token="uuid-token-xyz",
         status=InvitationStatus.PENDING,
-        created_at=datetime.now(timezone.utc),
-        expired_at=datetime.now(timezone.utc) + timedelta(hours=24),
+        created_at=datetime.now(UTC),
+        expired_at=datetime.now(UTC) + timedelta(hours=24),
     )
 
     app.dependency_overrides[get_current_user] = lambda: mock_user
@@ -117,8 +119,8 @@ def test_accept_invitation_success(client, mock_user, mock_invitation_service):
         name="Architecture Project",
         description="Demo",
         created_by_id=mock_user.id,
-        created_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
+        updated_at=datetime.now(UTC),
     )
 
     app.dependency_overrides[get_current_user] = lambda: mock_user

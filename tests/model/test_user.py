@@ -1,7 +1,6 @@
 import pytest
 from peewee import IntegrityError
 
-from app.core.security import password_hash
 from app.model.user import User
 
 

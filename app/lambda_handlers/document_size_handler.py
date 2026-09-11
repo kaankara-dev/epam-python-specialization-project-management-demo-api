@@ -1,5 +1,7 @@
-from app.repository.document import DocumentRepository
 from urllib.parse import unquote_plus
+
+from app.repository.document import DocumentRepository
+
 
 def handler(event: dict, context) -> dict:
     """

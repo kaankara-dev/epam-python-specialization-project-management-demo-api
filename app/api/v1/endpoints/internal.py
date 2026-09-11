@@ -26,4 +26,4 @@ def receive_s3_event(event: dict) -> dict:
     servisinin sadece internal network'te olduğunu, host'a port
     expose etmediğini doğrula.
     """
-    return handler(event, context=None)
+    return handler(event, None)

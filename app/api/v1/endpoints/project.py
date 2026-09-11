@@ -1,17 +1,22 @@
-from http.client import HTTPResponse
 from typing import Annotated
+
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.api.deps import get_current_user, get_project_service, get_document_service
-from app.model.user import User
-from app.schema.document import DocumentResponse
-from app.schema.project import ProjectCreate, ProjectResponse, ProjectMemberAdd, ProjectUpdate
-from app.service.document import DocumentService
-from app.service.project import ProjectService
+from app.api.deps import get_current_user, get_document_service, get_project_service
 from app.exception.project import (
     ProjectNotFoundError,
     ProjectPermissionDeniedError,
 )
+from app.model.user import User
+from app.schema.document import DocumentResponse
+from app.schema.project import (
+    ProjectCreate,
+    ProjectMemberAdd,
+    ProjectResponse,
+    ProjectUpdate,
+)
+from app.service.document import DocumentService
+from app.service.project import ProjectService
 
 router = APIRouter(prefix="/projects", tags=["projects"])
 

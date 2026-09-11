@@ -1,11 +1,15 @@
-from typing import List
 from uuid import uuid4
+
 from app.core.s3 import S3Client
-from app.repository.project import ProjectRepository
-from app.repository.document import DocumentRepository
-from app.schema.document import DocumentCreateRequest, DocumentUploadResponse, DocumentResponse
-from app.exception.project import ProjectNotFoundError, ProjectPermissionDeniedError
 from app.exception.document import DocumentNotFoundError
+from app.exception.project import ProjectNotFoundError, ProjectPermissionDeniedError
+from app.repository.document import DocumentRepository
+from app.repository.project import ProjectRepository
+from app.schema.document import (
+    DocumentCreateRequest,
+    DocumentResponse,
+    DocumentUploadResponse,
+)
 
 
 class DocumentService:
@@ -86,7 +90,7 @@ class DocumentService:
                                 created_at=document.created_at)
 
 
-    def get_documents_of_project(self, project_id: int, current_user_id: int) -> List[DocumentResponse]:
+    def get_documents_of_project(self, project_id: int, current_user_id: int) -> list[DocumentResponse]:
         """Proje üyelerinin isteğine döküman listesi döner"""
         project = self.project_repo.get_by_id(project_id)
         if not project:

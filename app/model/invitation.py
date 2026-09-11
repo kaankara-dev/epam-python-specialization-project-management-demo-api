@@ -1,6 +1,6 @@
-from datetime import timezone, datetime
+from datetime import UTC, datetime
 
-from peewee import ForeignKeyField, CharField, DateTimeField
+from peewee import CharField, DateTimeField, ForeignKeyField
 
 from app.db.base import BaseModel
 from app.model.enums import InvitationStatus
@@ -12,7 +12,7 @@ class Invitation(BaseModel):
     invited_login = CharField()
     token = CharField(unique=True)
     status = CharField(default=InvitationStatus.PENDING.value)
-    created_at = DateTimeField(default=lambda: datetime.now(timezone.utc))
+    created_at = DateTimeField(default=lambda: datetime.now(UTC))
     expired_at = DateTimeField()
 
     class Meta:

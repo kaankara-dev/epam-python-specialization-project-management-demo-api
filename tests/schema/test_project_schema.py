@@ -1,14 +1,15 @@
+from datetime import UTC, datetime
+
 import pytest
 from pydantic import ValidationError
+
+from app.model.enums import ProjectRole
 from app.schema.project import (
     ProjectCreate,
-    ProjectUpdate,
     ProjectMemberAdd,
     ProjectResponse,
+    ProjectUpdate,
 )
-from app.model.enums import ProjectRole
-from datetime import datetime, timezone
-
 
 # ==========================================
 # 1. ProjectCreate Testleri & Edge Case'ler
@@ -106,7 +107,7 @@ def test_project_member_add_missing_user_id():
 
 def test_project_response_mapping():
     """Tüm alanlar eksiksiz doldurulduğunda ProjectResponse doğru eşleşmeli."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     res = ProjectResponse(
         id=1,
         name="Proje 1",

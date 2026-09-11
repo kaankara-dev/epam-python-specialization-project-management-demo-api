@@ -1,6 +1,7 @@
 import pytest
-from app.model.user import User
+
 from app.model.project import Project
+from app.model.user import User
 from app.repository.document import DocumentRepository
 
 

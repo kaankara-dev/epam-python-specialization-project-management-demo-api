@@ -1,11 +1,11 @@
-from pwdlib import PasswordHash
+from datetime import UTC, datetime, timedelta
 from typing import Final
-from datetime import datetime, timedelta, timezone
-import app.exception.security
 
 import jwt
 from jwt.exceptions import InvalidTokenError
+from pwdlib import PasswordHash
 
+import app.exception.security
 from app.core.config import get_settings
 
 JWT_ALGORITHM: Final[str] = "HS256"
@@ -23,7 +23,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 def create_access_token(subject: str, expires_delta: timedelta | None = None) -> str:
     if not isinstance(subject, str) or not subject.strip():
         raise ValueError("subject must be a non-empty string")
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     settings = get_settings()
 

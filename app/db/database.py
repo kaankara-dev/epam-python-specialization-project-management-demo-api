@@ -3,7 +3,6 @@ from playhouse.db_url import connect
 
 from app.core.config import get_settings
 
-
 database_proxy = DatabaseProxy()
 
 

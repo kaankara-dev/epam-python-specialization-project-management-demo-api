@@ -1,6 +1,7 @@
 import pytest
-from app.model.user import User
+
 from app.model.enums import ProjectRole
+from app.model.user import User
 from app.repository.project import ProjectRepository
 
 

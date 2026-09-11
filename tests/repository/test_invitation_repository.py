@@ -1,4 +1,5 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
+
 import pytest
 
 from app.model.enums import InvitationStatus, ProjectRole
@@ -30,7 +31,7 @@ def sample_project(owner_user):
 
 def test_create_invitation(test_database, invitation_repo, sample_project):
     """Repository başarıyla yeni bir davet oluşturmalı."""
-    expires = datetime.now(timezone.utc) + timedelta(hours=24)
+    expires = datetime.now(UTC) + timedelta(hours=24)
     inv = invitation_repo.create(
         project_id=sample_project.id,
         invited_login="candidate_dev",
@@ -47,7 +48,7 @@ def test_create_invitation(test_database, invitation_repo, sample_project):
 
 def test_get_by_token(test_database, invitation_repo, sample_project):
     """Token ile sorgulama yapıldığında doğru davet dönmeli."""
-    expires = datetime.now(timezone.utc) + timedelta(hours=24)
+    expires = datetime.now(UTC) + timedelta(hours=24)
     created = invitation_repo.create(
         project_id=sample_project.id,
         invited_login="candidate_dev",
@@ -68,7 +69,7 @@ def test_get_by_token_not_found(test_database, invitation_repo):
 
 def test_list_by_project(test_database, invitation_repo, sample_project):
     """Bir projeye ait tüm davetler listelenebilmeli."""
-    expires = datetime.now(timezone.utc) + timedelta(hours=24)
+    expires = datetime.now(UTC) + timedelta(hours=24)
     invitation_repo.create(sample_project.id, "user1", "token-1", expires)
     invitation_repo.create(sample_project.id, "user2", "token-2", expires)
 
@@ -78,7 +79,7 @@ def test_list_by_project(test_database, invitation_repo, sample_project):
 
 def test_update_status(test_database, invitation_repo, sample_project):
     """Davetin statüsü güncellenebilmeli (ACCEPTED / REVOKED)."""
-    expires = datetime.now(timezone.utc) + timedelta(hours=24)
+    expires = datetime.now(UTC) + timedelta(hours=24)
     inv = invitation_repo.create(sample_project.id, "user1", "token-status", expires)
 
     updated = invitation_repo.update_status(inv, InvitationStatus.ACCEPTED)

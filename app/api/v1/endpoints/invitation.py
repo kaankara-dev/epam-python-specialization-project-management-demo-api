@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from peewee import Model
 
 from app.api.deps import get_current_user, get_invitation_service
 from app.exception.invitation import (

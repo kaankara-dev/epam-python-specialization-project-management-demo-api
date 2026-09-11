@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import MagicMock
 
 import pytest
@@ -123,7 +123,7 @@ def test_get_download_url_success(client, mock_user, mock_document_service):
         file_size_bytes=2048,
         mime_type="application/pdf",
         download_url="https://test-bucket.s3.amazonaws.com/projects/1/uuid_test.pdf?download-signature=abc",
-        created_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
     )
 
     app.dependency_overrides[get_current_user] = lambda: mock_user

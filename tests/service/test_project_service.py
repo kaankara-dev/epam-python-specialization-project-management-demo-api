@@ -1,10 +1,16 @@
 import pytest
-from app.model.user import User
+
+from app.exception.project import ProjectNotFoundError, ProjectPermissionDeniedError
 from app.model.enums import ProjectRole
-from app.schema.project import ProjectCreate, ProjectMemberAdd, ProjectResponse, ProjectUpdate
+from app.model.user import User
 from app.repository.project import ProjectRepository
+from app.schema.project import (
+    ProjectCreate,
+    ProjectMemberAdd,
+    ProjectResponse,
+    ProjectUpdate,
+)
 from app.service.project import ProjectService
-from app.exception.project import ProjectPermissionDeniedError, ProjectNotFoundError
 
 
 @pytest.fixture

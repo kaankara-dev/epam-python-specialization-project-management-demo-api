@@ -1,7 +1,8 @@
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
-from app.model.project import Project, ProjectMember
 from app.model.enums import ProjectRole
+from app.model.project import Project, ProjectMember
 
 
 class ProjectRepository:
@@ -53,8 +54,8 @@ class ProjectRepository:
         project = self.get_by_id(project_id)
         if project is None:
             return None
-        for key in data:
-            project.__setattr__(key, data[key])
-        project.updated_at = datetime.now()
+        for key, value in data.items():
+            project.__setattr__(key, value)
+        project.updated_at = datetime.now(tz=ZoneInfo("Europe/Istanbul"))
         project.save()
         return project

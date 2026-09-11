@@ -1,5 +1,7 @@
 from datetime import datetime
+
 from pydantic import BaseModel, ConfigDict, Field
+
 from app.model.enums import ProjectRole
 
 
@@ -12,7 +14,6 @@ class ProjectBase(BaseModel):
 
 class ProjectCreate(ProjectBase):
     """Proje oluştururken istemciden (client) beklediğimiz gövde."""
-    pass
 
 
 class ProjectUpdate(BaseModel):

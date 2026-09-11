@@ -1,8 +1,9 @@
 import pytest
 from peewee import IntegrityError
-from app.model.user import User
-from app.model.project import Project
+
 from app.model.document import Document
+from app.model.project import Project
+from app.model.user import User
 
 
 def test_document_creation(test_database):

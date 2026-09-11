@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from uuid import uuid4
 
 from app.exception.invitation import (
@@ -59,7 +59,7 @@ class InvitationService:
 
         # 5. Token üret (uuid4().hex), expire süresini 24 saat sonraya ayarla
         token = uuid4().hex
-        expired_at = datetime.now(timezone.utc) + timedelta(hours=24)
+        expired_at = datetime.now(UTC) + timedelta(hours=24)
 
         # 6. DB'ye kaydet ve InvitationResponse DTO'su olarak dön
         invitation = self.invitation_repo.create(
@@ -85,9 +85,9 @@ class InvitationService:
             raise InvitationInvalidStatusError("Bu davet zaten kullanılmış veya iptal edilmiş.")
 
         # 3. Süresi dolmuş mu? (datetime.now(timezone.utc) > expired_at) -> InvitationExpiredError
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         # SQLite timezone farkını engellemek için naive/aware uyumu:
-        expired_at = invitation.expired_at.replace(tzinfo=timezone.utc) if invitation.expired_at.tzinfo is None else invitation.expired_at
+        expired_at = invitation.expired_at.replace(tzinfo=UTC) if invitation.expired_at.tzinfo is None else invitation.expired_at
         if now > expired_at:
             raise InvitationExpiredError("Davetiyenin geçerlilik süresi dolmuş.")
 

@@ -1,13 +1,13 @@
 import pytest
-from app.model.user import User
-from app.model.enums import ProjectRole
-from app.schema.document import DocumentCreateRequest
-from app.repository.project import ProjectRepository
-from app.repository.document import DocumentRepository
-from app.service.auth import AuthService
-from app.service.document import DocumentService
-from app.exception.project import ProjectPermissionDeniedError, ProjectNotFoundError
+
 from app.exception.document import DocumentNotFoundError
+from app.exception.project import ProjectNotFoundError, ProjectPermissionDeniedError
+from app.model.enums import ProjectRole
+from app.model.user import User
+from app.repository.document import DocumentRepository
+from app.repository.project import ProjectRepository
+from app.schema.document import DocumentCreateRequest
+from app.service.document import DocumentService
 
 
 class DummyS3Client:
@@ -96,7 +96,7 @@ def test_get_download_url_forbidden_for_outsider(test_database, document_service
     upload_res = document_service.request_upload(project.id, req, owner.id)
 
     with pytest.raises(ProjectPermissionDeniedError):
-        doc_res = document_service.get_download_url(
+        document_service.get_download_url(
             document_id=upload_res.document_id,
             current_user_id=outsider.id
         )
@@ -104,10 +104,10 @@ def test_get_download_url_forbidden_for_outsider(test_database, document_service
 
 def test_get_download_url_raises_error_for_document_doesnt_exists(test_database, document_service, test_data):
     """Olmayan döküman istenildiğinde hata dönmelidir."""
-    owner, outsider, project = test_data
+    owner, _, _ = test_data
 
     with pytest.raises(DocumentNotFoundError):
-        doc_res = document_service.get_download_url(
+        document_service.get_download_url(
             document_id=999,
             current_user_id=owner.id
         )
@@ -115,10 +115,10 @@ def test_get_download_url_raises_error_for_document_doesnt_exists(test_database,
 
 def test_get_documents_forbidden_for_outsider(test_database, document_service, test_data):
     """Projeye üye olmayan kişi dökümanları listelemek istediğinde hata almalıdır."""
-    owner, outsider, project = test_data
+    _, outsider, project = test_data
 
     with pytest.raises(ProjectPermissionDeniedError):
-        doc_res = document_service.get_documents_of_project(
+        document_service.get_documents_of_project(
             project_id=project.id,
             current_user_id=outsider.id
         )
@@ -126,10 +126,10 @@ def test_get_documents_forbidden_for_outsider(test_database, document_service, t
 
 def test_get_documents_raises_error_for_project_doesnt_exists(test_database, document_service, test_data):
     """Olmayan projenin dökümanları listelenmek istediğinde hata almalıdır."""
-    owner, outsider, project = test_data
+    owner, _, _ = test_data
 
     with pytest.raises(ProjectNotFoundError):
-        doc_res= document_service.get_documents_of_project(
+        document_service.get_documents_of_project(
             project_id=9999,
             current_user_id=owner.id
         )
@@ -137,7 +137,7 @@ def test_get_documents_raises_error_for_project_doesnt_exists(test_database, doc
 
 def test_get_documents_of_project_success(test_database, document_service, test_data, project_repository):
     """Proje üyesi dökümanları listeleyebilmelidir"""
-    owner, outsider, project = test_data
+    _ , _ , project = test_data
     member = User.create(login="doc_member", password_hash="hash")
     project_repository.add_member(project_id=project.id, user_id=member.id, role=ProjectRole.PARTICIPANT)
     docs = document_service.get_documents_of_project(project_id=project.id, current_user_id=member.id)

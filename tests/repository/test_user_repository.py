@@ -1,6 +1,6 @@
 import pytest
 from peewee import IntegrityError
-from app.model.user import User
+
 from app.repository.user import UserRepository
 
 

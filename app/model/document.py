@@ -1,7 +1,6 @@
-from datetime import datetime, timezone
-from enum import unique
+from datetime import UTC, datetime
 
-from peewee import CharField, BigIntegerField, DateTimeField, ForeignKeyField
+from peewee import BigIntegerField, CharField, DateTimeField, ForeignKeyField
 
 from app.db.base import BaseModel
 from app.model.project import Project
@@ -15,7 +14,7 @@ class Document(BaseModel):
     s3_key = CharField(max_length=512, unique=True)
     file_size_bytes = BigIntegerField(default= 0)
     mime_type = CharField(max_length=100)
-    created_at = DateTimeField(default=lambda: datetime.now(timezone.utc))
+    created_at = DateTimeField(default=lambda: datetime.now(UTC))
 
     class Meta:
         table_name = "documents"

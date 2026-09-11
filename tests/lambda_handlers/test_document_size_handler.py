@@ -1,8 +1,9 @@
 import pytest
-from app.model.user import User
-from app.model.project import Project
-from app.repository.document import DocumentRepository
+
 from app.lambda_handlers.document_size_handler import handler
+from app.model.project import Project
+from app.model.user import User
+from app.repository.document import DocumentRepository
 
 
 @pytest.fixture

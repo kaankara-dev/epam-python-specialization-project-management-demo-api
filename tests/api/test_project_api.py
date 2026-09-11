@@ -1,16 +1,14 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import MagicMock
 
 import pytest
 from fastapi.testclient import TestClient
 
-from app.api.deps import get_current_user, get_project_service, get_document_service
+from app.api.deps import get_current_user, get_document_service, get_project_service
 from app.exception.project import ProjectNotFoundError, ProjectPermissionDeniedError
 from app.main import app
-from app.model.enums import ProjectRole
 from app.schema.document import DocumentResponse
 from app.schema.project import ProjectResponse
-from tests.api.test_document_api import mock_document_service
 
 
 @pytest.fixture
@@ -54,8 +52,8 @@ def test_create_project_success(client, mock_user, mock_project_service):
         name="EPAM Cloud API Projesi",
         description="API Testi",
         created_by_id=mock_user.id,
-        created_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
+        updated_at=datetime.now(UTC),
     )
 
     app.dependency_overrides[get_current_user] = lambda: mock_user
@@ -130,8 +128,8 @@ def test_list_projects_success(client, mock_user, mock_project_service):
         ProjectResponse(
             id=1, name="Proje A", description=None,
             created_by_id=mock_user.id,
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
     ]
 
@@ -158,8 +156,8 @@ def test_get_project_success(client, mock_user, mock_project_service):
     mock_project_service.get_project.return_value = ProjectResponse(
         id=5, name="Detay Projesi", description=None,
         created_by_id=mock_user.id,
-        created_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
+        updated_at=datetime.now(UTC),
     )
 
     app.dependency_overrides[get_current_user] = lambda: mock_user
@@ -204,8 +202,8 @@ def test_update_project_success(client, mock_user, mock_project_service):
     mock_project_service.update_project.return_value = ProjectResponse(
         id=5, name="Güncel Ad", description=None,
         created_by_id=mock_user.id,
-        created_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
+        updated_at=datetime.now(UTC),
     )
 
     app.dependency_overrides[get_current_user] = lambda: mock_user
@@ -282,7 +280,7 @@ def test_get_documents_project_unauthorized(client):
 
 
 def test_get_documents_project_success(client, mock_user, mock_project_service, mock_document_service):
-    mock_project_service.return_value = ProjectResponse(name="Project A", description="Project Description", id=1, created_by_id=mock_user.id, created_at=datetime.now(timezone.utc), updated_at=datetime.now(timezone.utc))
+    mock_project_service.return_value = ProjectResponse(name="Project A", description="Project Description", id=1, created_by_id=mock_user.id, created_at=datetime.now(UTC), updated_at=datetime.now(UTC))
     project = mock_project_service.get_project(1)
     mock_document_service.return_value = [
         DocumentResponse(
@@ -293,7 +291,7 @@ def test_get_documents_project_success(client, mock_user, mock_project_service, 
             mime_type="application/pdf",
             download_url=None,
             project_id=project.id,
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
         )
     ]
 
@@ -309,7 +307,7 @@ def test_get_documents_project_success(client, mock_user, mock_project_service, 
 def test_get_documents_project_not_found(client, mock_user, mock_document_service):
     mock_document_service.get_documents_of_project.side_effect = ProjectNotFoundError("Proje bulunamadı")
     app.dependency_overrides[get_current_user] = lambda: mock_user
-    app.dependency_overrides[get_project_service] = lambda: mock_document_service
+    app.dependency_overrides[get_document_service] = lambda: mock_document_service
 
     res = client.get("/api/v1/projects/9999/documents")
 

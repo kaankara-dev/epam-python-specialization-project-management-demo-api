@@ -1,12 +1,13 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
-from app.db.database import initialize_database
-from app.api.v1.endpoints.project import router as project_router
-from app.api.v1.endpoints.document import router as document_router
+
 from app.api.v1.endpoints.auth import router as auth_router
-from app.api.v1.endpoints.invitation import router as invitation_router
+from app.api.v1.endpoints.document import router as document_router
 from app.api.v1.endpoints.internal import router as internal_router
+from app.api.v1.endpoints.invitation import router as invitation_router
+from app.api.v1.endpoints.project import router as project_router
+from app.db.database import initialize_database
 from app.db.registry import MODELS
 
 

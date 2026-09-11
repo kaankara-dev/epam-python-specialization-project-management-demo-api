@@ -1,8 +1,9 @@
 import pytest
 from peewee import IntegrityError
-from app.model.user import User
-from app.model.project import Project, ProjectMember
+
 from app.model.enums import ProjectRole
+from app.model.project import Project, ProjectMember
+from app.model.user import User
 
 
 def test_project_and_member_can_be_persisted(test_database):

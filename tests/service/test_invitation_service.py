@@ -1,4 +1,5 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
+
 import pytest
 
 from app.exception.invitation import (
@@ -14,9 +15,7 @@ from app.model.user import User
 from app.repository.invitation import InvitationRepository
 from app.repository.project import ProjectRepository
 from app.repository.user import UserRepository
-from app.schema.project import ProjectCreate
 from app.service.invitation import InvitationService
-from app.service.project import ProjectService
 
 
 @pytest.fixture
@@ -159,7 +158,7 @@ def test_accept_invitation_expired_raises_error(invitation_service, owner_user, 
     # DB'de süresini geçmişe alıyoruz
     from app.model.invitation import Invitation
     db_inv = Invitation.get_by_id(inv.id)
-    db_inv.expired_at = datetime.now(timezone.utc) - timedelta(hours=1)
+    db_inv.expired_at = datetime.now(UTC) - timedelta(hours=1)
     db_inv.save()
 
     with pytest.raises(InvitationExpiredError):

@@ -1,6 +1,7 @@
+import boto3
 import pytest
 from moto import mock_aws
-import boto3
+
 from app.core.config import get_settings
 from app.core.s3 import S3Client
 

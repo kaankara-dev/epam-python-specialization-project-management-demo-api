@@ -1,5 +1,8 @@
 import boto3
+from moto.s3.exceptions import BucketAlreadyExists, InvalidBucketName
+
 from app.core.config import get_settings
+
 
 def create_local_bucket():
     settings = get_settings()
@@ -16,7 +19,9 @@ def create_local_bucket():
             CreateBucketConfiguration={"LocationConstraint": settings.aws_region},
         )
         print(f"✅ Bucket '{settings.s3_bucket_name}' MiniIO üzerinde başarıyla oluşturuldu!")
-    except Exception as e:
+    except BucketAlreadyExists as e:
+        print(f"Bilgi / Hata: {e}")
+    except InvalidBucketName as e:
         print(f"Bilgi / Hata: {e}")
 
 if __name__ == "__main__":

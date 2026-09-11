@@ -1,4 +1,5 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
+
 import pytest
 from peewee import IntegrityError
 
@@ -30,7 +31,7 @@ def sample_project(owner_user):
 
 def test_create_invitation_success(test_database, sample_project):
     """Davet oluşturulduğunda varsayılan status PENDING olmalı ve alanlar doğru kaydedilmeli."""
-    expires = datetime.now(timezone.utc) + timedelta(hours=24)
+    expires = datetime.now(UTC) + timedelta(hours=24)
     invitation = Invitation.create(
         project=sample_project,
         invited_login="new_member",
@@ -48,7 +49,7 @@ def test_create_invitation_success(test_database, sample_project):
 
 def test_invitation_token_unique_constraint(test_database, sample_project):
     """Aynı token ile ikinci bir davet oluşturulmaya çalışıldığında IntegrityError fırlatmalı."""
-    expires = datetime.now(timezone.utc) + timedelta(hours=24)
+    expires = datetime.now(UTC) + timedelta(hours=24)
     Invitation.create(
         project=sample_project,
         invited_login="user1",
@@ -67,7 +68,7 @@ def test_invitation_token_unique_constraint(test_database, sample_project):
 
 def test_cascade_delete_with_project(test_database, sample_project):
     """Proje silindiğinde ona bağlı tüm davetler de CASCADE ile silinmeli."""
-    expires = datetime.now(timezone.utc) + timedelta(hours=24)
+    expires = datetime.now(UTC) + timedelta(hours=24)
     Invitation.create(
         project=sample_project,
         invited_login="user1",

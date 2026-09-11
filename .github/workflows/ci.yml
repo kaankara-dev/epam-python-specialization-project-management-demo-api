@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    # Gerçek AWS/DB'ye bağlanmıyoruz (testler SQLite in-memory + moto mock
+    # kullanıyor), bu yüzden burada GERÇEK secrets'a gerek yok - sadece
+    # pydantic Settings'in "required" alanlarını doldurmak için dummy değerler.
+    env:
+      JWT_SECRET_KEY: test-secret-key
+      ACCESS_TOKEN_EXPIRE_MINUTES: 60
+      DATABASE_URL: "sqlite:///:memory:"
+      AWS_ACCESS_KEY_ID: testing
+      AWS_SECRET_ACCESS_KEY: testing
+      AWS_REGION: eu-central-1
+      S3_BUCKET_NAME: test-bucket
+      S3_ENDPOINT_URL: ""
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: Lint with ruff
+        run: uv run ruff check .
+
+      - name: Run tests
+        run: uv run pytest -v
+
+      - name: Generate openapi.json
+        run: |
+          uv run python -c "
+          import json
+          from app.main import app
+          json.dump(app.openapi(), open('openapi.json', 'w'), indent=2)
+          "
+
+      - name: Upload openapi.json artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: openapi-schema
+          path: openapi.json
+
+  docker-build:
+    needs: test   # test job kırmızıysa bu hiç çalışmaz - gereksiz build'i önler
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t epam-api:${{ github.sha }} .
+
+      - name: Save Docker image as tar
+        run: docker save epam-api:${{ github.sha }} -o epam-api-image.tar
+
+      - name: Upload Docker image artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-image
+          path: epam-api-image.tar

@@ -1,10 +1,12 @@
+from datetime import UTC, datetime
+
 import pytest
 from pydantic import ValidationError
-from datetime import datetime, timezone
+
 from app.schema.document import (
     DocumentCreateRequest,
-    DocumentUploadResponse,
     DocumentResponse,
+    DocumentUploadResponse,
 )
 
 
@@ -36,7 +38,7 @@ def test_document_upload_response_defaults():
 
 def test_document_response_serialization():
     """DocumentResponse'un tüm alanları doğru taşımalı (download_url opsiyonel)."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     res = DocumentResponse(
         id=1,
         project_id=10,
